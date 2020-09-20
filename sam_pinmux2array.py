@@ -144,7 +144,16 @@ def showInstance(name):
         print(s.get("pad"), name, padName, "pmux" +
               s.get("function"), e2s(s, "ioset", "ioset"))
         
-        
+#
+# Show the modules available in this chip
+#
+def getModules(all=False):
+    if all:
+        modules = ATDFXML.findall(".//*/peripherals/module")
+    else:
+        modules = ATDFXML.findall(".//*/peripherals/module/instance/signals/../../")
+    return [m.get("name") for m in modules]
+
 # Stuff to execute right away
 
 readATDF()
