@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 # sam_pinmux2array.py
 # August 2020, bu Bill Westfield
@@ -10,6 +11,7 @@
 
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
+import sys
 
 # Find all the ports actually present on this chip.  (Chips with fewer pins
 #  have fewer ports.)  Look for pads in any pinout that are ports (begin with
@@ -97,6 +99,7 @@ def e2s(element, attrib, label=""):
 # Show all the functions available on a particular port pin (like "PA03")
 #
 def showPortPin(pp):
+    print(pp)
     funcs = ATDFXML.findall(".//*[@pad='" + pp + "']/../..")
     for f in funcs:
         for s in f.findall("signals/signal"):  
@@ -114,7 +117,7 @@ def showPortPin(pp):
 def showChipPin(cp):
     pp = ATDFXML.find(".//*[@position='" + cp + "']").get("pad")
     print("Chip Pin "+cp + " on " +
-          ATDFXML.find("devices/device").get("name") + " is "+pp)
+          ATDFXML.find("devices/device").get("name") + " is ", end="")
     showPortPin(pp)
     
 #
@@ -123,11 +126,16 @@ def showChipPin(cp):
 # (pass a function on what to do for each pin name.  Like "print" to just
 #  show which pins exist, or "showChipPin" to print all info.)
 #
-def showAllPins(x):
+def getAllPins():
     aPinout = ATDFXML.find(".//*/pinout/pin/[@position='1']/..")
     allpins = aPinout.findall("pin")
-    for p in [x.get("position") for x in allpins]:
-        x(p)
+    return [x.get("position") for x in allpins]
+
+# backward compatible
+def showAllPins(func):
+    for p in getAllPins():
+        func(p)
+
         
 #
 # Show the pads that implement a particular peripheral ("instance")
@@ -155,6 +163,19 @@ def getModules(all=False):
     return [m.get("name") for m in modules]
 
 # Stuff to execute right away
+print(sys.argv)
+readATDF("".join(sys.argv[1:2]))
+for cmd in sys.argv[2:]:
+    # make some guesses.
+    if "(" in cmd:        # command has parens, probably a python expression
+        l = eval(cmd)
+        if type(l) == list: print(l)
+    elif cmd.isdigit():   # Assume full numeric values are pin numbers
+        showChipPin(cmd)
+    elif cmd[0] == "P":   # arguments that start with P are PortPins (PA00, etc)
+        showPortPin(cmd)
+    else:
+        showInstance(cmd.upper())  # Otherwise, assume it's an instance Name.
+        
 
-readATDF()
 
