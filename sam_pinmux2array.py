@@ -9,6 +9,8 @@
 #
 # This program generates arrays that provide that function.
 
+defaultFilename = "samd51.atdf"
+
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 import sys
@@ -31,7 +33,7 @@ def readATDF(fn=""):
     global ATDFXML
     if fn == "":
         fn = input("ATDF File for Device: ")
-    if fn == "": fn = "samd51.atdf"
+    if fn == "": fn = defaultFilename
     F = open(fn)
     data = F.read()
     ATDFXML = ET.fromstring(data)
